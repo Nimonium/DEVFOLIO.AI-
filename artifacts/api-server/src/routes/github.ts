@@ -50,7 +50,7 @@ router.post("/github/scan", async (req, res): Promise<void> => {
   req.log.info({ username }, "Scanning GitHub profile");
 
   try {
-    const [user, rawRepos] = await Promise.all([
+    const [user, rawRepos] = await Promise.all<any>([
       fetchGitHub(`/users/${username}`),
       fetchGitHub(`/users/${username}/repos?sort=stars&per_page=100&type=owner`),
     ]);
@@ -129,7 +129,7 @@ router.post("/github/suggestions", async (req, res): Promise<void> => {
   req.log.info({ username }, "Generating AI suggestions for GitHub profile");
 
   try {
-    const [user, rawRepos] = await Promise.all([
+    const [user, rawRepos] = await Promise.all<any>([
       fetchGitHub(`/users/${username}`),
       fetchGitHub(`/users/${username}/repos?sort=stars&per_page=30&type=owner`),
     ]);
