@@ -1,0 +1,293 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: DevFolio AI API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: contact
+    description: Contact form operations
+  - name: github
+    description: GitHub scanning operations
+  - name: testimonials
+    description: Testimonial operations
+  - name: stats
+    description: Platform statistics
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /contact:
+    post:
+      operationId: submitContact
+      tags: [contact]
+      summary: Submit contact form
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Contact form submitted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContactResult"
+        "400":
+          description: Invalid input
+
+  /github/scan:
+    post:
+      operationId: scanGithub
+      tags: [github]
+      summary: Scan a GitHub profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GithubScanInput"
+      responses:
+        "200":
+          description: GitHub scan results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GithubScanResult"
+        "400":
+          description: Invalid username
+
+  /github/suggestions:
+    post:
+      operationId: getAiSuggestions
+      tags: [github]
+      summary: Get AI suggestions for a GitHub profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GithubScanInput"
+      responses:
+        "200":
+          description: AI improvement suggestions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiSuggestionsResult"
+
+  /testimonials:
+    get:
+      operationId: getTestimonials
+      tags: [testimonials]
+      summary: Get all testimonials
+      responses:
+        "200":
+          description: List of testimonials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Testimonial"
+
+  /stats:
+    get:
+      operationId: getPlatformStats
+      tags: [stats]
+      summary: Get platform statistics
+      responses:
+        "200":
+          description: Platform stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlatformStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ContactInput:
+      type: object
+      required: [name, email, message]
+      properties:
+        name:
+          type: string
+          minLength: 1
+        email:
+          type: string
+          format: email
+        subject:
+          type: string
+        message:
+          type: string
+          minLength: 1
+
+    ContactResult:
+      type: object
+      required: [success, message]
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+
+    GithubScanInput:
+      type: object
+      required: [username]
+      properties:
+        username:
+          type: string
+          minLength: 1
+
+    Repository:
+      type: object
+      required: [name, description, language, stars, forks, url]
+      properties:
+        name:
+          type: string
+        description:
+          type: ["string", "null"]
+        language:
+          type: ["string", "null"]
+        stars:
+          type: integer
+        forks:
+          type: integer
+        url:
+          type: string
+        topics:
+          type: array
+          items:
+            type: string
+        hasReadme:
+          type: boolean
+        hasDeployment:
+          type: boolean
+        quality:
+          type: integer
+          description: Quality score 0-100
+
+    GithubScanResult:
+      type: object
+      required: [username, avatarUrl, bio, totalRepos, totalStars, topLanguages, repositories]
+      properties:
+        username:
+          type: string
+        avatarUrl:
+          type: string
+        bio:
+          type: ["string", "null"]
+        totalRepos:
+          type: integer
+        totalStars:
+          type: integer
+        followers:
+          type: integer
+        following:
+          type: integer
+        topLanguages:
+          type: array
+          items:
+            type: string
+        repositories:
+          type: array
+          items:
+            $ref: "#/components/schemas/Repository"
+        contributionStreak:
+          type: integer
+        portfolioReadiness:
+          type: integer
+          description: Portfolio readiness score 0-100
+
+    AiSuggestion:
+      type: object
+      required: [type, title, description, priority]
+      properties:
+        type:
+          type: string
+          enum: [readme, screenshot, deployment, description, skills, project]
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+          enum: [high, medium, low]
+        project:
+          type: ["string", "null"]
+
+    AiSuggestionsResult:
+      type: object
+      required: [username, suggestions, strongestSkills, overallScore]
+      properties:
+        username:
+          type: string
+        suggestions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiSuggestion"
+        strongestSkills:
+          type: array
+          items:
+            type: string
+        overallScore:
+          type: integer
+          description: Overall portfolio score 0-100
+
+    Testimonial:
+      type: object
+      required: [id, name, role, company, avatar, content, rating]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        role:
+          type: string
+        company:
+          type: string
+        avatar:
+          type: string
+        content:
+          type: string
+        rating:
+          type: integer
+
+    PlatformStats:
+      type: object
+      required: [portfoliosGenerated, githubProfilesScanned, developersSatisfied, avgGenerationTime]
+      properties:
+        portfoliosGenerated:
+          type: integer
+        githubProfilesScanned:
+          type: integer
+        developersSatisfied:
+          type: integer
+        avgGenerationTime:
+          type: string
